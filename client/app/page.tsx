@@ -1,12 +1,20 @@
+import Image from "next/image";
+import Container from "@/components/shared/container";
+
 export default function HomePage() {
     return (
-        <div className="flex items-center justify-center flex-col">
-            <p>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Quisquam ratione quo eaque doloremque laboriosam? Aut soluta
-                deleniti ex, pariatur rem sit est molestias alias veniam beatae,
-                dolorem, quae deserunt omnis!
-            </p>
-        </div>
+        <Container>
+            <section className="pt-6">
+                <Image
+                    src="/opengraph-image.png"
+                    alt="Home Banner"
+                    width={600}
+                    height={600}
+                    sizes="100vw"
+                    className="w-full h-auto"
+                    priority
+                />
+            </section>
+        </Container>
     );
 }

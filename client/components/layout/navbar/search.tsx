@@ -3,6 +3,7 @@
 import Form from "next/form";
 import { Search as SearchIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { Input } from "@/components/ui/input";
 
 export default function Search() {
     const searchParams = useSearchParams();
@@ -10,19 +11,19 @@ export default function Search() {
     return (
         <Form
             action="/search"
-            className="w-max-[550px] relative w-full lg:w-80 xl:w-full"
+            className="w-max-[200px] relative w-full lg:w-[166px] h-[36px]"
         >
-            <input
+            <Input
                 key={searchParams?.get("q")}
                 type="text"
                 name="q"
-                placeholder="Search for products..."
+                placeholder="Search"
                 autoComplete="off"
                 defaultValue={searchParams?.get("q") || ""}
-                className="text-md w-full rounded-lg border bg-white px-4 py-2 text-black placeholder:text-neutral-500 md:text-sm dark:border-neutral-800 dark:bg-transparent dark:text-white dark:placeholder:text-neutral-400"
+                className="size-full bg-background"
             />
             <div className="absolute right-0 top-0 mr-3 flex h-full items-center">
-                <SearchIcon className="size-4" />
+                <SearchIcon className="size-4 " />
             </div>
         </Form>
     );
