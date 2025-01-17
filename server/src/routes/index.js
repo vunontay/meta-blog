@@ -9,6 +9,7 @@ const categoryRoutes = require("./category");
 const tagRoutes = require("./tag");
 const postRoutes = require("./post");
 const commentRoutes = require("./comment");
+const userRoutes = require("./user");
 const authenticateApiKey = require("../middlewares/authenticated-key");
 
 router.use("/v1/api/key", keyRoutes);
@@ -18,5 +19,6 @@ router.use("/v1/api/categories", categoryRoutes);
 router.use("/v1/api/tags", tagRoutes);
 router.use("/v1/api/posts", postRoutes);
 router.use("/v1/api/comments", commentRoutes);
+router.use("/v1/api/users", userRoutes);
 
 module.exports = router;
