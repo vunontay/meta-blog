@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Work_Sans } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
 
 const workSans = Work_Sans({
     weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -27,9 +25,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${workSans.className} antialiased`}>
-                <Navbar />
                 <main> {children}</main>
-                <Footer />
             </body>
         </html>
     );
