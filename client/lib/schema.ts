@@ -19,4 +19,16 @@ export const registrationSchema = z
         path: ["confirmPassword"],
     });
 
+export const loginSchema = z.object({
+    email: z.string().email("Vui lòng nhập địa chỉ email hợp lệ"),
+    password: z
+        .string()
+        .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
+        .regex(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+            "Mật khẩu phải chứa ít nhất một chữ cái in hoa, một chữ cái in thường và một số"
+        ),
+});
+
+export type LoginData = z.infer<typeof loginSchema>;
 export type RegistrationData = z.infer<typeof registrationSchema>;
