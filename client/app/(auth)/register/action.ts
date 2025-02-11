@@ -1,76 +1,108 @@
 "use server";
+
 import arcjet, { shield, detectBot, fixedWindow, request } from "@arcjet/next";
 import { registrationSchema, type RegistrationData } from "@/lib/schema";
+import { TActionResponse } from "@/types/server/action-type";
+import userModel from "@/models/user-model";
+import dbConnect from "@/lib/mongoose";
+import bcrypt from "bcryptjs";
 
-type RegisterResponse = {
-    error?: string;
-    success?: string;
-};
 const aj = arcjet({
     key: process.env.ARCJET_KEY!,
     rules: [
-        shield({
-            mode: "LIVE",
-        }),
-        detectBot({
-            mode: "LIVE",
-            allow: [],
-        }),
-        fixedWindow({
-            mode: "LIVE",
-            window: "1m",
-            max: 5,
-        }),
+        shield({ mode: "LIVE" }),
+        detectBot({ mode: "LIVE", allow: [] }),
+        fixedWindow({ mode: "LIVE", window: "1m", max: 5 }),
     ],
 });
+
 export async function registerUser(
-    _prevState: RegisterResponse,
+    _prevState: TActionResponse<unknown>,
     formData: FormData
-): Promise<RegisterResponse> {
+): Promise<TActionResponse<unknown>> {
     const req = await request();
     const decision = await aj.protect(req);
 
     if (decision.isDenied()) {
         if (decision.reason.isRateLimit()) {
             return {
-                error: "Quá nhiều lần đăng ký. Vui lòng thử lại sau.",
+                success: false,
+                message: "Quá nhiều lần đăng ký. Vui lòng thử lại sau.",
             };
         }
         if (decision.reason.isBot()) {
             return {
-                error: "Bạn là bot. Vui lòng dừng lại.",
+                success: false,
+                message: "Bạn là bot. Vui lòng dừng lại.",
             };
         }
         return {
-            error: "Đã xảy ra lỗi trong quá trình đăng ký.",
+            success: false,
+            message: "Đã xảy ra lỗi trong quá trình đăng ký.",
         };
     }
-    const data = {
-        username: formData.get("username") || "",
-        email: formData.get("email") || "",
-        password: formData.get("password") || "",
-        confirmPassword: formData.get("confirmPassword") || "",
-    };
+
     try {
-        const result = registrationSchema.safeParse(data);
+        // Extract form data
+        const rawData = {
+            username: formData.get("username") as string,
+            email: formData.get("email") as string,
+            password: formData.get("password") as string,
+            confirmPassword: formData.get("confirmPassword") as string,
+        };
+        // Validate input data
+        const result = registrationSchema.safeParse(rawData);
         if (!result.success) {
             return {
-                error: result.error.errors[0].message,
+                success: false,
+                message: "Vui lòng sửa lỗi trong biểu mẫu",
+                errors: result.error.flatten().fieldErrors,
+            };
+        }
+        const validatedData: RegistrationData = result.data;
+
+        // Connect to database and check if user exists
+        await dbConnect();
+        const existingUser = await userModel.findOne({
+            email: validatedData.email,
+        });
+        if (existingUser) {
+            return {
+                success: false,
+                message: `Tài khoản ${validatedData.email} đã tồn tại.`,
             };
         }
 
-        const validatedData: RegistrationData = result.data;
+        // Hash password and create user
+        const salt = await bcrypt.genSalt(10);
+        const hashPassword = await bcrypt.hash(validatedData.password, salt);
 
-        // Đây là nơi bạn thường lưu người dùng vào CSDL.
-        console.log("CSDL sẽ đăng ký:", validatedData);
+        const newUser = await userModel.create({
+            email: validatedData.email,
+            username: validatedData.username,
+            password: hashPassword,
+            status: "active",
+        });
+
+        // Ensure user was created successfully
+        if (!newUser) {
+            return {
+                success: false,
+                message: "Tạo tài khoản không thành công.",
+            };
+        }
 
         return {
-            success: "Đăng ký thành công!",
+            success: true,
+            message: "Đăng ký thành công!",
         };
     } catch (error) {
-        console.error("Lỗi đăng ký:", error);
         return {
-            error: "Đã xảy ra lỗi trong quá trình đăng ký.",
+            success: false,
+            message:
+                error instanceof Error
+                    ? error.message
+                    : "Đã xảy ra lỗi khi đăng ký",
         };
     }
 }

@@ -1,59 +1,55 @@
 "use client";
 import { registerUser } from "@/app/(auth)/register/action";
+import { Icons } from "@/components/shared/icons";
+import { useActionState, useEffect, useRef, useTransition } from "react";
+import { TActionResponse } from "@/types/client/action-type";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import SubmitButton from "@/components/custom/buttons/submit-button";
 import PasswordField from "@/components/custom/inputs/password-field";
 import TextField from "@/components/custom/inputs/text-field";
-import { Icons } from "@/components/shared/icons";
-import { registrationSchema } from "@/lib/schema";
-import { useActionState, useState } from "react";
 
-const initialState = {
-    error: "",
-    success: undefined,
+const initialState: TActionResponse<unknown> = {
+    message: "",
+    success: false,
+    errors: undefined,
 } as const;
 
 export default function RegisterForm() {
-    const [state, formAction, isPending] = useActionState(
-        registerUser,
-        initialState
-    );
-    const [validationErrors, setValidationErrors] = useState<
-        Record<string, string>
-    >({});
+    const formRef = useRef<HTMLFormElement>(null);
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+    const [state, formAction] = useActionState(registerUser, initialState);
 
-    const handleSubmit = async (formData: FormData) => {
-        setValidationErrors({});
-
-        const data = {
-            username: formData.get("username")?.toString() || "",
-            email: formData.get("email")?.toString() || "",
-            password: formData.get("password")?.toString() || "",
-            confirmPassword: formData.get("confirmPassword")?.toString() || "",
-        };
-
-        const result = registrationSchema.safeParse(data);
-        if (!result.success) {
-            const errors: Record<string, string> = {};
-            result.error.errors.forEach((error) => {
-                const field = error.path[0].toString();
-                errors[field] = error.message;
-            });
-            setValidationErrors(errors);
-            return; // Dừng lại nếu dữ liệu không hợp lệ.
+    useEffect(() => {
+        if (state.success) {
+            toast.success(state.message);
+            formRef.current?.reset();
+            router.push("/login");
+        } else if (state.message) {
+            toast.error(state.message);
         }
+    }, [router, state]);
 
-        await formAction(formData);
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        startTransition(() => {
+            formAction(formData);
+        });
     };
 
     return (
-        <form className="space-y-4" action={handleSubmit}>
+        <form className="space-y-4" ref={formRef} onSubmit={handleSubmit}>
             <TextField
                 id="username"
                 name="username"
                 placeholder="Tên người dùng"
                 required
                 label="Tên tài khoản"
-                errorMessage={state.error || validationErrors.username}
+                errorMessage={
+                    state.errors?.username && state.errors.username.join(", ")
+                }
                 icon={<Icons.User className="size-4 text-primary" />}
             />
             <TextField
@@ -63,7 +59,9 @@ export default function RegisterForm() {
                 required
                 type="email"
                 label="Email"
-                errorMessage={state.error || validationErrors.email}
+                errorMessage={
+                    state.errors?.email && state.errors.email.join(", ")
+                }
                 icon={<Icons.Mail className="size-4 text-primary" />}
             />
             <PasswordField
@@ -73,7 +71,9 @@ export default function RegisterForm() {
                 type="password"
                 placeholder="Nhập mật khẩu"
                 label="Mật khẩu"
-                errorMessage={state.error || validationErrors.password}
+                errorMessage={
+                    state.errors?.password && state.errors.password.join(", ")
+                }
             />
             <PasswordField
                 id="confirmPassword"
@@ -82,7 +82,10 @@ export default function RegisterForm() {
                 type="password"
                 placeholder="Nhập lại mật khẩu"
                 label="Xác nhận mật khẩu"
-                errorMessage={state.error || validationErrors.confirmPassword}
+                errorMessage={
+                    state.errors?.confirmPassword &&
+                    state.errors.confirmPassword.join(", ")
+                }
             />
             <SubmitButton isLoading={isPending}>Đăng ký</SubmitButton>
         </form>
