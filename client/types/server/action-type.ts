@@ -4,3 +4,13 @@ export type TActionResponse<T> = {
     errors?: Record<string, string[]>;
     metadata?: T;
 };
+
+export type TActionState<T> =
+    | {
+          data?: T;
+          errors?: {
+              [K in keyof T]?: string[];
+          };
+          message?: string;
+      }
+    | undefined;

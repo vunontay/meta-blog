@@ -2,12 +2,15 @@ import Search, { SearchSkeleton } from "./search";
 import { MENU } from "@/constants/server/menu-constant";
 import { Suspense } from "react";
 import { SwitchTheme } from "@/components/custom/switch-theme";
+import { getSession } from "@/lib/session";
 import Link from "next/link";
 import LogoSquare from "@/components/shared/logo-square";
 import Container from "@/components/shared/container";
 import MobileMenu from "@/components/layout/navbar/mobile-menu";
 
 export async function Navbar() {
+    const session = await getSession();
+    console.log(session);
     return (
         <header className="sticky top-0 z-10 bg-card shadow-md">
             <Container>

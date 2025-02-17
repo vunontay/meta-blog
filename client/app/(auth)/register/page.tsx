@@ -1,8 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import RegisterForm from "./_components/register-form";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+    const session = await getSession();
+    if (session) redirect("/");
     return (
         <div className="min-h-screen w-full flex flex-col md:flex-row bg-card">
             <div className="w-full md:w-1/2 flex items-center justify-center p-8 lg:p-12">

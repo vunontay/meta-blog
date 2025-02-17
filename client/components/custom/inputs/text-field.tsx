@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 
 interface ITextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
     icon?: React.ReactNode;
-    errorMessage?: string;
+    errorMessage?: string[] | string;
     label: string;
     required?: boolean;
 }

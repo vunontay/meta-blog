@@ -5,7 +5,7 @@ import { useState } from "react";
 
 interface IPasswordFieldProps
     extends React.InputHTMLAttributes<HTMLInputElement> {
-    errorMessage?: string;
+    errorMessage?: string[] | string;
     label: string;
     require?: boolean;
 }
